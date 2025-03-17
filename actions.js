@@ -44,7 +44,7 @@ export async function handleModelAction(page, action) {
         }
         break;
       case "wait":
-        console.log("Waiting...");
+        console.log("Waiting for browser...");
         await page.waitForTimeout(2000);
         break;
       case "goto":

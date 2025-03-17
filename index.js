@@ -41,9 +41,16 @@ async function main() {
       content: userInput,
     });
 
+    // console.log("Current conversation history:", JSON.stringify(conversationHistory, null, 2));
+
     // Make the first API call using the conversation history.
     response = await sendCUARequest(null, previousResponseId, null, conversationHistory);
     previousResponseId = response.id;
+
+    // Print output_text if available.
+    if (response.output_text) {
+      console.log(response.output_text);
+    }
 
     // Process all actions returned by the API.
     while (true) {
@@ -56,6 +63,7 @@ async function main() {
           role: "assistant",
           content: JSON.stringify(response),
         });
+        console.log("Waitning for user input.");
         break;
       }
 
@@ -73,6 +81,11 @@ async function main() {
         // Send the screenshot along with the call ID.
         response = await sendCUARequest(screenshotBase64, previousResponseId, callId, conversationHistory);
         previousResponseId = response.id;
+
+        // Print output_text if available.
+        if (response.output_text) {
+          console.log(response.output_text);
+        }
       }
 
       // Wait a bit before checking for new actions.

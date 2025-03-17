@@ -21,6 +21,8 @@ export async function sendCUARequest(screenshotBase64, previousResponseId, callI
       },
     });
   }
+  
+  // console.log("Sending request to OpenAI with input:", JSON.stringify(input, null, 2));
 
   const response = await openai.responses.create({
     model: "computer-use-preview",
@@ -39,7 +41,7 @@ export async function sendCUARequest(screenshotBase64, previousResponseId, callI
     },
     truncation: "auto",
   });
-
+  
+  // console.log("Received response from OpenAI:", JSON.stringify(response, null, 2));
   return response;
 }
-
