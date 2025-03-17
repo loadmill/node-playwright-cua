@@ -1,7 +1,12 @@
-import readline from "readline";
+import minimist from "minimist";
 import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshot } from "./actions.js";
+import readline from "readline";
+
+// Parse command line arguments
+const args = minimist(process.argv.slice(2));
+const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
 
 // Set up readline for user input.
 const rl = readline.createInterface({
@@ -19,7 +24,7 @@ function promptUser() {
 
 async function main() {
   const { browser, page } = await launchBrowser();
-  await page.goto("https://loadmill-center-12baa23ad9e4.herokuapp.com/");
+  await page.goto(startUrl);
 
   let conversationHistory = [];
   let previousResponseId = null;
