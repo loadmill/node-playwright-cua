@@ -60,7 +60,7 @@ export async function handleModelAction(page, action) {
         await page.goForward();
         break;
       case "screenshot":
-        console.log("Screenshot action received - no execution needed.");
+        console.log("Taking a screenshot");
         break;
       default:
         console.log("Unknown action:", action);
