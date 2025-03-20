@@ -1,14 +1,12 @@
 import minimist from "minimist";
+import readline from "readline";
 import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshot } from "./actions.js";
-import readline from "readline";
 
-// Parse command line arguments
 const args = minimist(process.argv.slice(2));
 const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
 
-// Set up readline for user input.
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -16,10 +14,51 @@ const rl = readline.createInterface({
 
 function promptUser() {
   return new Promise((resolve) => {
-    rl.question("> ", (input) => {
-      resolve(input);
-    });
+    rl.question("> ", (input) => resolve(input));
   });
+}
+
+async function runFullTurn(page, conversationHistory, userInput, previousResponseId) {
+  // Add user input
+  conversationHistory.push({ role: "user", content: userInput });
+
+  // Send conversation to OpenAI
+  let response = await sendCUARequest(null, previousResponseId, null, conversationHistory);
+  previousResponseId = response.id;
+
+  // Handle returned actions
+  while (true) {
+    const actions = (response.output || []).filter((item) => item.type === "computer_call");
+    if (actions.length === 0) break;
+
+    for (const computerCall of actions) {
+      const { action, call_id, pending_safety_checks } = computerCall;
+
+      await handleModelAction(page, action);
+
+      const screenshotBuffer = await getScreenshot(page);
+      const screenshotBase64 = screenshotBuffer.toString("base64");
+
+      // Always acknowledge any safety checks (in production, you'd confirm with user)
+      response = await sendCUARequest(
+        screenshotBase64,
+        previousResponseId,
+        call_id,
+        conversationHistory,
+        pending_safety_checks || []
+      );
+      previousResponseId = response.id;
+
+      if (response.output_text) {
+        console.log(response.output_text);
+      }
+    }
+  }
+
+  // Save final response and print output
+  conversationHistory.push({ role: "assistant", content: JSON.stringify(response) });
+
+  return { conversationHistory, previousResponseId };
 }
 
 async function main() {
@@ -28,69 +67,14 @@ async function main() {
 
   let conversationHistory = [];
   let previousResponseId = null;
-  let response;
 
   while (true) {
-    // Get a command from the user.
     const userInput = await promptUser();
     if (userInput.toLowerCase() === "exit") break;
 
-    // Add the user message to the conversation history.
-    conversationHistory.push({
-      role: "user",
-      content: userInput,
-    });
-
-    // console.log("Current conversation history:", JSON.stringify(conversationHistory, null, 2));
-
-    // Make the first API call using the conversation history.
-    response = await sendCUARequest(null, previousResponseId, null, conversationHistory);
-    previousResponseId = response.id;
-
-    // Print output_text if available.
-    if (response.output_text) {
-      console.log(response.output_text);
-    }
-
-    // Process all actions returned by the API.
-    while (true) {
-      const actions = response.output.filter((item) => item.type === "computer_call");
-
-      // If there are no more actions, assume the task is complete.
-      if (actions.length === 0) {
-        // Optionally, store the assistant's final message.
-        conversationHistory.push({
-          role: "assistant",
-          content: JSON.stringify(response),
-        });
-        console.log("Waitning for user input.");
-        break;
-      }
-
-      for (const computerCall of actions) {
-        const action = computerCall.action;
-        const callId = computerCall.call_id;
-
-        // Execute the action using Playwright.
-        await handleModelAction(page, action);
-
-        // Capture the updated page state.
-        const screenshotBuffer = await getScreenshot(page);
-        const screenshotBase64 = screenshotBuffer.toString("base64");
-
-        // Send the screenshot along with the call ID.
-        response = await sendCUARequest(screenshotBase64, previousResponseId, callId, conversationHistory);
-        previousResponseId = response.id;
-
-        // Print output_text if available.
-        if (response.output_text) {
-          console.log(response.output_text);
-        }
-      }
-
-      // Wait a bit before checking for new actions.
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+    const result = await runFullTurn(page, conversationHistory, userInput, previousResponseId);
+    conversationHistory = result.conversationHistory;
+    previousResponseId = result.previousResponseId;
   }
 
   await browser.close();

@@ -1,3 +1,4 @@
+// openai.js
 import OpenAI from "openai";
 import dotenv from "dotenv";
 
@@ -7,22 +8,33 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function sendCUARequest(screenshotBase64, previousResponseId, callId, conversationHistory) {
-  // Use the conversation history as the input.
+export async function sendCUARequest(
+  screenshotBase64,
+  previousResponseId,
+  callId,
+  conversationHistory,
+  acknowledgedSafetyChecks = []
+) {
+  // Clone the conversation history
   let input = conversationHistory.slice();
 
   if (callId && screenshotBase64) {
-    input.push({
+    const outputItem = {
       type: "computer_call_output",
       call_id: callId,
       output: {
         type: "computer_screenshot",
         image_url: `data:image/png;base64,${screenshotBase64}`,
       },
-    });
+    };
+
+    // If we have safety checks that need acknowledgement, attach them here
+    if (acknowledgedSafetyChecks.length > 0) {
+      outputItem.acknowledged_safety_checks = acknowledgedSafetyChecks;
+    }
+
+    input.push(outputItem);
   }
-  
-  // console.log("Sending request to OpenAI with input:", JSON.stringify(input, null, 2));
 
   const response = await openai.responses.create({
     model: "computer-use-preview",
@@ -41,7 +53,6 @@ export async function sendCUARequest(screenshotBase64, previousResponseId, callI
     },
     truncation: "auto",
   });
-  
-  // console.log("Received response from OpenAI:", JSON.stringify(response, null, 2));
+
   return response;
 }
