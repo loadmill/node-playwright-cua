@@ -37,10 +37,14 @@ export async function handleModelAction(page, action) {
         break;
       case "keypress":
         console.log(`Pressing key: ${action.keys}`);
-        for (const key of action.keys) {
-          // Convert "ENTER" (or any case variant) to the expected "Enter"
-          const normalizedKey = key.toUpperCase() === "ENTER" ? "Enter" : key;
-          await page.keyboard.press(normalizedKey);
+        if (action.keys.includes("ALT") && action.keys.includes("ARROWLEFT")) {
+            console.log("Navigating back using page.goBack()");
+            await page.goBack();
+        } else {
+            for (const key of action.keys) {
+                const normalizedKey = key.toUpperCase() === "ENTER" ? "Enter" : key;
+                await page.keyboard.press(normalizedKey);
+            }
         }
         break;
       case "wait":
