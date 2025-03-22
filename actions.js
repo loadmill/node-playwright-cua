@@ -70,6 +70,7 @@ export async function handleModelAction(page, action) {
   }
 }
 
-export async function getScreenshot(page) {
-  return await page.screenshot({ fullPage: true });
+export async function getScreenshotAsBase64(page) {
+  const screenshotBuffer = await page.screenshot({ fullPage: true });
+  return screenshotBuffer.toString("base64");
 }

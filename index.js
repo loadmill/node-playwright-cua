@@ -2,7 +2,7 @@ import minimist from "minimist";
 import readline from "readline";
 import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
-import { handleModelAction, getScreenshot } from "./actions.js";
+import { handleModelAction, getScreenshotAsBase64 } from "./actions.js";
 
 const args = minimist(process.argv.slice(2));
 const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
@@ -21,9 +21,10 @@ function promptUser() {
 async function runFullTurn(page, conversationHistory, userInput, previousResponseId) {
   // Add user input
   conversationHistory.push({ role: "user", content: userInput });
+  const screenshotBase64 = await getScreenshotAsBase64(page);  
 
   // Send conversation to OpenAI
-  let response = await sendCUARequest(null, previousResponseId, null, conversationHistory);
+  let response = await sendCUARequest(screenshotBase64, previousResponseId, null, conversationHistory);
   previousResponseId = response.id;
 
   // Handle returned actions
@@ -36,8 +37,7 @@ async function runFullTurn(page, conversationHistory, userInput, previousRespons
 
       await handleModelAction(page, action);
 
-      const screenshotBuffer = await getScreenshot(page);
-      const screenshotBase64 = screenshotBuffer.toString("base64");
+      const screenshotBase64 = await getScreenshotAsBase64(page);
 
       // Always acknowledge any safety checks (in production, you'd confirm with user)
       response = await sendCUARequest(
