@@ -35,19 +35,25 @@ https://github.com/user-attachments/assets/a0ea77d7-96e8-4bd1-b7ce-01646e4502b6
 
 ## Code Structure
 - **index.js**  
-  Sets up the browser and command line interface. It manages the conversation history and loops through user commands and API responses.
+  Handles the main loop, user prompts, and calls `runFullTurn`. It also deals with sending the conversation to the OpenAI CUA API and processing returned actions and safety checks.
 
 - **actions.js**  
-  Contains functions to execute actions (click, double-click, move, drag, scroll, type, keypress, wait, navigation) on the browser page. It also includes a function to take full-page screenshots.
+  Contains functions to execute actions (click, double-click, move, drag, scroll, type, keypress, wait, navigation) on the browser page.
 
 - **openai.js**  
-  Sends requests to the OpenAI CUA API with the conversation history and screenshots, and receives the next set of actions.
+  Manages the calls to the OpenAI CUA API. Attaches screenshots and acknowledged safety checks.
 
 - **browser.js**  
   Launches the Playwright browser with specified settings, including window size and other options.
 
+## Handling Safety Checks
+The OpenAI CUA API may return `pending_safety_checks` when it detects sensitive or potentially malicious instructions. When this happens, we need to acknowledge them in the next call to proceed.
+
+- Each time the agent receives a `computer_call` with `pending_safety_checks`, these items must be included in the next request under `acknowledged_safety_checks`.
+- Our code always responds positively to these checks, but in a real-world setting, you may prompt the user for confirmation or log them for review.
+
 ## Features
-- Executes actions like clicking, double-clicking, moving the mouse, dragging, scrolling, typing, key presses, waiting, and navigation.
-- Maintains conversation history to keep context between user commands and API responses.
-- Provides a continuous loop for real-time interaction.
-- Uses Playwright for browser automation and OpenAI's CUA API for decision making.
+- Executes actions like clicking, double-clicking, dragging, scrolling, typing, key presses, waiting, and navigation.
+- Maintains conversation history for context between user commands and API responses.
+- Uses screenshots and the OpenAI CUA API for an iterative, real-time interaction loop.
+- Automatically acknowledges safety checks for demonstration purposes (in practice, you can confirm them with the user).

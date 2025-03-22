@@ -55,7 +55,7 @@ async function runFullTurn(page, conversationHistory, userInput, previousRespons
     }
   }
 
-  // Save final response and print output
+  // Save final response
   conversationHistory.push({ role: "assistant", content: JSON.stringify(response) });
 
   return { conversationHistory, previousResponseId };
