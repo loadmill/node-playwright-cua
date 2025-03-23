@@ -1,19 +1,20 @@
 # Computer-Using Agent (CUA) with Node.js, Playwright, and OpenAI
 
 ## Goal
-Automate web interactions using Node.js, Playwright, and OpenAI's CUA API. The agent performs tasks like clicking, typing, scrolling, and navigation by analyzing screenshots and receiving AI-generated actions.
+
+Automate web interactions with a browser using Node.js, Playwright, and OpenAI's CUA API. This agent can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
 https://github.com/user-attachments/assets/a0ea77d7-96e8-4bd1-b7ce-01646e4502b6
 
 ## How It Works
 1. The agent launches a browser using Playwright.
-2. It navigates to a given URL (a default is set in the code).
-3. The agent waits for user input via the command line.
-4. User commands are added to a conversation history.
-5. The conversation history is sent to OpenAI using the CUA API.
-6. If the API returns actions, the agent executes them (for example, clicking or typing).
-7. After each action, it takes a screenshot and sends it back to OpenAI for further instructions.
-8. The process repeats until the user types "exit".
+2. It navigates to a provided URL.
+3. The user types commands in the terminal.
+4. The user input, along with a screenshot, is sent to OpenAI computer-use model.
+5. The conversation context is managed by OpenAI automatically.
+6. If the API returns actions (for example, click or type), the agent performs them.
+7. After each action, the agent takes another screenshot and sends it back to the API for additional steps.
+8. The loop continues until the user types **exit**.
 
 ## Run the Agent
 1. Install the dependencies:
@@ -28,32 +29,32 @@ https://github.com/user-attachments/assets/a0ea77d7-96e8-4bd1-b7ce-01646e4502b6
    ```sh
    echo "OPENAI_API_KEY=your-key" > .env
    ```
-4. Start the agent (you can provide a URL using the `--url` option):
+4. Start the agent (use `--url` to override the default):
    ```sh
    node index.js
    ```
 
 ## Code Structure
 - **index.js**  
-  Handles the main loop, user prompts, and calls `runFullTurn`. It also deals with sending the conversation to the OpenAI CUA API and processing returned actions and safety checks.
+  - Handles user input in a loop.  
+  - Sends the user's request and a screenshot to the API with `previousResponseId` to maintain context on the server.  
+  - Processes any returned actions until there are none left.  
 
 - **actions.js**  
-  Contains functions to execute actions (click, double-click, move, drag, scroll, type, keypress, wait, navigation) on the browser page.
+  - Contains functions to execute actions (click, double-click, move, drag, scroll, type, keypress, wait, navigation) on the browser page.
 
 - **openai.js**  
-  Manages the calls to the OpenAI CUA API. Attaches screenshots and acknowledged safety checks.
+  - Builds the request to the CUA API with messages, screenshots, and safety checks.
 
 - **browser.js**  
-  Launches the Playwright browser with specified settings, including window size and other options.
+  - Using Playwright to launch a Chromium browser with specified settings, including window size and other options.
 
 ## Handling Safety Checks
-The OpenAI CUA API may return `pending_safety_checks` when it detects sensitive or potentially malicious instructions. When this happens, we need to acknowledge them in the next call to proceed.
-
-- Each time the agent receives a `computer_call` with `pending_safety_checks`, these items must be included in the next request under `acknowledged_safety_checks`.
-- Our code always responds positively to these checks, but in a real-world setting, you may prompt the user for confirmation or log them for review.
+The CUA API sometimes returns `pending_safety_checks` for instructions that might be sensitive or potentially harmful. When this occurs, you must include them in the next request under `acknowledged_safety_checks` to proceed. The current code automatically acknowledges these checks, but a real production system might pause or log them for review.
 
 ## Features
-- Executes actions like clicking, double-clicking, dragging, scrolling, typing, key presses, waiting, and navigation.
-- Maintains conversation history for context between user commands and API responses.
-- Uses screenshots and the OpenAI CUA API for an iterative, real-time interaction loop.
-- Automatically acknowledges safety checks for demonstration purposes (in practice, you can confirm them with the user).
+- Performs clicks, double-clicks, typing, scrolling, drag-and-drop, and other browser actions.
+- Uses OpenAI to plan actions and maintain conversation context on the server.
+- Sends screenshots for iterative, real-time feedback from the model.
+- Acknowledges safety checks in each step (user override is possible in real usage).
+- Only minimal conversation data is sent per turn, with `previousResponseId` linking requests.
