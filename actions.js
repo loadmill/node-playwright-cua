@@ -2,7 +2,7 @@ export async function handleModelAction(page, action) {
   try {
     switch (action.type) {
       case "click":
-        console.log(`Clicking at (${action.x}, ${action.y}), ${action.button}`);
+        console.log(`Clicking at (${action.x}, ${action.y}), ${action.button} button`);
         await page.mouse.click(action.x, action.y);
         break;
       case "double_click":
