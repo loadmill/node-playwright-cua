@@ -69,7 +69,7 @@ async function main() {
 
   const initialSystemText = 
   `This is a browser-using agent operating in a controlled environment.  
-  Perform the user’s requested actions within the current browser tab.  
+  Perform the user’s requested actions within the current browser tab opened on the target platform.  
   Execute each action once unless instructed otherwise.
   Stop acting once the task appears complete—avoid unnecessary clicks.  
   Never ask for confirmation. If an action needs to be performed, execute it immediately. 
