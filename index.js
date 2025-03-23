@@ -26,7 +26,7 @@ async function runFullTurn(page, conversationHistory, userInput, previousRespons
   let response = await sendCUARequest(initialScreenshot, previousResponseId, null, conversationHistory);
   previousResponseId = response.id;
 
-  // Keep looping on output
+  // Keep looping on until there are no more computer actions
   while (true) {
     const items = response.output || [];
     let actions = [];
@@ -96,16 +96,19 @@ async function main() {
   let conversationHistory = [{
     "role": "system",
     "content": 
-      `This is a browser-using agent running in a safe environment. 
-      You should perform all actions requested by the user.
-      The user requests apply to the current open browser tab.
-      Try not to ask question to the user, instead, perform the action directly.
-      Ask questions only if it is necessary to complete the task or if the last task was completed.
-      The available browser actions are: 
-      click, double_click, move, drag, scroll, type, keypress, wait, goto, back, forward, and screenshot.
-      When navigating back or forward, always use the 'back' and 'forward' actions instead of simulating key presses like ALT + ARROWLEFT.`
-  }];
+      `This is a browser-using agent operating in a controlled environment.  
+      Perform the user’s requested actions within the current browser tab.  
   
+      - Execute each action once unless instructed otherwise.  
+      - Stop acting once the task appears complete—avoid unnecessary clicks.  
+      - Do not ask the user questions. Act directly unless clarification is essential.  
+      - If unsure, take a screenshot once before proceeding.  
+      - Do not repeat actions that have no visible effect.  
+  
+      Available browser actions:
+      click, double_click, move, drag, scroll, type, keypress, wait, goto, back, forward, screenshot.`
+  }];
+
   let previousResponseId = null;
 
   while (true) {
