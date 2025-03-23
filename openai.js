@@ -8,16 +8,17 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function sendCUARequest(
+export async function sendCUARequest({
+  messages = [],
   screenshotBase64,
   previousResponseId,
   callId,
-  conversationHistory,
-  acknowledgedSafetyChecks = []
-) {
-  // Clone the conversation history
-  let input = conversationHistory.slice();
+  pendingSafetyChecks = [],
+}) {
 
+  const input = [...messages];
+
+  // If responding to a computer_call, attach a screenshot along with any safety checks
   if (callId && screenshotBase64) {
     const outputItem = {
       type: "computer_call_output",
@@ -27,16 +28,13 @@ export async function sendCUARequest(
         image_url: `data:image/png;base64,${screenshotBase64}`,
       },
     };
-
-    // If we have safety checks that need acknowledgement, attach them here
-    if (acknowledgedSafetyChecks.length > 0) {
-      outputItem.acknowledged_safety_checks = acknowledgedSafetyChecks;
+    if (pendingSafetyChecks.length > 0) {
+      outputItem.acknowledged_safety_checks = pendingSafetyChecks;
     }
-
     input.push(outputItem);
   }
 
-  const response = await openai.responses.create({
+  return openai.responses.create({
     model: "computer-use-preview",
     previous_response_id: previousResponseId || undefined,
     tools: [
@@ -47,12 +45,9 @@ export async function sendCUARequest(
         environment: "browser",
       },
     ],
-    input: input,
-    reasoning: {
-      generate_summary: "concise",
-    },
+    input,
+    store: true,
+    reasoning: { generate_summary: "concise" },
     truncation: "auto",
   });
-
-  return response;
 }
