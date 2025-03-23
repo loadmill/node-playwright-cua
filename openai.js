@@ -1,6 +1,7 @@
 // openai.js
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { browserWidth, browserheight } from "./browser.js";
 
 dotenv.config();
 
@@ -40,8 +41,8 @@ export async function sendCUARequest({
     tools: [
       {
         type: "computer_use_preview",
-        display_width: 1024,
-        display_height: 768,
+        display_width: browserWidth,
+        display_height: browserheight,
         environment: "browser",
       },
     ],
