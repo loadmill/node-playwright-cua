@@ -3,7 +3,7 @@
 ## Goal
 Automate web interactions with a browser using Node.js, Playwright, and OpenAI's CUA API. The agent can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
-https://github.com/user-attachments/assets/a0ea77d7-96e8-4bd1-b7ce-01646e4502b6
+https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
 
 ## How It Works
 1. The agent launches a browser using Playwright.  
