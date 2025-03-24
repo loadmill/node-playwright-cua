@@ -55,17 +55,23 @@ export async function handleModelAction(page, action) {
         const mappedKeys = action.keys.map(key => keyMap[key.toUpperCase()] || key);
         const modifiers = mappedKeys.filter(key => modifierKeys.has(key));
         const normalKeys = mappedKeys.filter(key => !modifierKeys.has(key));
-      
+
+        if ((mappedKeys[0] === "Meta" && mappedKeys[1] === "[") ||
+          (mappedKeys[0] === "Alt" && mappedKeys[1] === "ArrowLeft")) {
+          await page.goBack();
+          break;
+        }
+
         // Hold down modifier keys
         for (const key of modifiers) {
           await page.keyboard.down(key);
         }
-      
+
         // Press normal keys
         for (const key of normalKeys) {
           await page.keyboard.press(key);
         }
-      
+
         // Release modifier keys
         for (const key of modifiers) {
           await page.keyboard.up(key);
