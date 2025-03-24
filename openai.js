@@ -1,7 +1,6 @@
-// openai.js
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { browserWidth, browserheight } from "./browser.js";
+import { display_width, display_height } from "./browser.js";
 
 dotenv.config();
 
@@ -16,7 +15,6 @@ export async function sendCUARequest({
   callId,
   pendingSafetyChecks = [],
 }) {
-
   const input = [...messages];
 
   // If responding to a computer_call, attach a screenshot along with any safety checks
@@ -41,8 +39,8 @@ export async function sendCUARequest({
     tools: [
       {
         type: "computer_use_preview",
-        display_width: browserWidth,
-        display_height: browserheight,
+        display_width,
+        display_height,
         environment: "browser",
       },
     ],

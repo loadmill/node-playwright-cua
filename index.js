@@ -47,6 +47,8 @@ async function runFullTurn(page, response) {
         if (textPart) {
           console.log("[Message]", textPart.text);
         }
+      } else if (item.type !== "computer_call") {
+        console.log("Unknown OpenAI response item:", item.type);
       }
     }
 
@@ -56,11 +58,11 @@ async function runFullTurn(page, response) {
     // Process each model action, then respond with a new screenshot
     for (const { action, call_id, pending_safety_checks } of actions) {
       await handleModelAction(page, action);
-      const newScreenshot = await getScreenshotAsBase64(page);
+      const screenshotBase64 = await getScreenshotAsBase64(page);
 
       response = await sendCUARequest({
         messages: [],
-        screenshotBase64: newScreenshot,
+        screenshotBase64,
         previousResponseId: newResponseId,
         callId: call_id,
         pendingSafetyChecks: pending_safety_checks || [],
@@ -93,7 +95,7 @@ async function main() {
   This web browser is running on ${osName}.  
   Use OS-specific shortcuts. For example:
   On macOS, "CMD" should be used where applicable.
-  If the user asks you to go back to the previous page, use a combination of ALT and ARROWLEFT keys.
+  On macOS if the user asks you to go back (to the previous page), use a combination of Cmd + [ keys.
   `;
 
   let previousResponseId;
