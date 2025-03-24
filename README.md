@@ -28,7 +28,7 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
    ```sh
    echo "OPENAI_API_KEY=your-key" > .env
    ```
-4. Start the agent (use the `--url` option to set a different start page):
+4. Start the agent (use the `--url=https://example.com/` option to set a different start page):
    ```sh
    node index.js
    ```
