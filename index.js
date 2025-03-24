@@ -4,6 +4,17 @@ import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshotAsBase64 } from "./actions.js";
 
+// Function to detect OS
+function getOSName() {
+  const osType = process.platform;
+  if (osType === "darwin") return "macOS";
+  if (osType === "win32") return "Windows";
+  return "Linux"; // Default to Linux if it's neither macOS nor Windows
+}
+
+console.log('running on', getOSName());
+
+const osName = getOSName();
 const args = minimist(process.argv.slice(2));
 const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
 
@@ -79,6 +90,11 @@ async function main() {
 
   Available browser actions: 
   click, double_click, move, drag, scroll, type, keypress, wait, goto, back, forward, screenshot.
+  
+  **Keyboard Shortcuts:**  
+  This web browser is running on ${osName}.  
+  Use OS-specific shortcuts. For example:
+  On macOS, "CMD" should be used where applicable.
   If the user asks you to go back to the previous page, use a combination of ALT and ARROWLEFT keys.
   `;
 
