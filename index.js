@@ -12,8 +12,6 @@ function getOSName() {
   return "Linux"; // Default to Linux if it's neither macOS nor Windows
 }
 
-console.log('running on', getOSName());
-
 const osName = getOSName();
 const args = minimist(process.argv.slice(2));
 const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
