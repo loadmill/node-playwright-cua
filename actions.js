@@ -43,8 +43,8 @@ export async function handleModelAction(page, action) {
         }
         break;
       case "scroll":
-        console.log(`Scrolling by (${action.scrollX}, ${action.scrollY})`);
-        await page.mouse.wheel(action.scrollX, action.scrollY);
+        console.log(`Scrolling by (${action.scroll_x}, ${action.scroll_y})`);
+        await page.mouse.wheel(action.scroll_x, action.scroll_y);
         break;
       case "type":
         console.log(`Typing text: ${action.text}`);
