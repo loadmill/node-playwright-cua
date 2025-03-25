@@ -1,14 +1,14 @@
 # Computer-Using Agent (CUA) with Node.js, Playwright, and OpenAI
 
 ## Goal
-Automate web interactions with a browser using Node.js, Playwright, and OpenAI's CUA API. The agent can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
+Automate web interactions in a browser using Node.js, Playwright, and OpenAI's CUA API. The agent can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
 https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
 
 ## How It Works
 1. The agent launches a browser using Playwright.  
 2. It navigates to a provided URL.  
-3. The user enters commands in the terminal.  
+3. The user enters commands in the terminal (or the agent reads them from a text file if specified).  
 4. The user input, along with a screenshot, is sent to the OpenAI computer-use model.  
 5. OpenAI manages the conversation context automatically.  
 6. If the API returns actions (for example, click or type), the agent performs them.  
@@ -28,21 +28,45 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
    ```sh
    echo "OPENAI_API_KEY=your-key" > .env
    ```
-4. Start the agent (use the `--url=https://example.com/` option to set a different start page):
+4. Run the agent:
    ```sh
    node index.js
    ```
-5. (Optional) Capture a HAR file of the session by running the agent with the `--save-har` flag:
-   ```sh
-   node index.js --save-har
-   ```
-   This will generate a `cua-session-<timestamp>.har` file in the working directory when the session ends.
+
+### Flags
+
+- `--url=https://example.com/`  
+  Sets the initial URL to open. If not provided, a default test URL is used.
+
+- `--save-har`  
+  Captures a HAR file of the session. When the session ends, the file `cua-session-<timestamp>.har` is created in the current directory.
+
+- `--instructions=FILENAME` or `-i FILENAME`  
+  Reads commands from a text file, one line at a time. When the file is fully read, the agent continues in interactive mode unless one of the instructions was `exit`.  
+
+#### Example
+```sh
+node index.js --url=https://loadmill-center-12baa23ad9e4.herokuapp.com --save-har --instructions=example-instructions.txt
+```
+
+Sample `example-instructions.txt`:
+```
+Start a new chat
+Send a hello world message in the chat
+Go back to the main page
+Go to the agent login and login using a@b.com and the pass 123456
+reply "ok" to the first message
+exit
+```
+
+When run, each line is passed to the agent as if you typed it in. If you include `exit` in the file, the session ends after that instruction. If you do not include `exit`, the agent switches to interactive mode once all file lines are consumed.
 
 ## Code Structure
 - **index.js**  
   - Manages user input and the main loop  
-  - Sends the user's commands and a screenshot to the API with `previousResponseId` to maintain context on the OpenAI server.  
-  - Processes any returned actions until there are none left.  
+  - Feeds either file-based instructions or interactive terminal input to the agent  
+  - Sends the user's commands and a screenshot to the API with `previousResponseId` to maintain context on the OpenAI server  
+  - Processes any returned computer actions until there are none left  
 
 - **actions.js**  
   - Contains functions to execute actions on the browser page, including clicking, dragging, scrolling, typing, and more  
@@ -64,3 +88,4 @@ The CUA API may return `pending_safety_checks` for sensitive or potentially harm
 - Acknowledges safety checks automatically for demonstration purposes.  
 - Uses `previousResponseId` to keep messages minimal while linking conversation turns.  
 - Captures a HAR file of the network activity when run with `--save-har`.  
+- Reads commands line-by-line from a file when run with `--instructions=FILENAME` or `-i FILENAME`.
