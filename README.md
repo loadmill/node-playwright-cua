@@ -32,6 +32,11 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
    ```sh
    node index.js
    ```
+5. (Optional) Capture a HAR file of the session by running the agent with the `--save-har` flag:
+   ```sh
+   node index.js --save-har
+   ```
+   This will generate a `cua-session-<timestamp>.har` file in the working directory when the session ends.
 
 ## Code Structure
 - **index.js**  
@@ -46,7 +51,8 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
   - Builds requests to the CUA API with messages, screenshots, and safety checks  
 
 - **browser.js**  
-  - Uses Playwright to launch Chromium with a fixed window size and other settings  
+  - Uses Playwright to launch Chromium with a fixed window size  
+  - (Optional) Records a HAR file if launched with the `--save-har` flag  
 
 ## Handling Safety Checks
 The CUA API may return `pending_safety_checks` for sensitive or potentially harmful requests. To proceed, you must include them as `acknowledged_safety_checks` in your next request. The current code acknowledges them automatically, but a real production system would likely pause or log them for confirmation.
@@ -56,4 +62,5 @@ The CUA API may return `pending_safety_checks` for sensitive or potentially harm
 - Uses OpenAI to plan actions and maintain conversation context on the server side.  
 - Sends iterative screenshots for real-time guidance from the model.  
 - Acknowledges safety checks automatically for demonstration purposes.  
-- Uses `previousResponseId` to keep messages minimal while linking conversation turns.
+- Uses `previousResponseId` to keep messages minimal while linking conversation turns.  
+- Captures a HAR file of the network activity when run with `--save-har`.  

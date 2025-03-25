@@ -1,3 +1,6 @@
+# HTTP Archive (HAR) files
+*.har
+
 # Logs
 logs
 *.log

@@ -4,17 +4,17 @@ import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshotAsBase64 } from "./actions.js";
 
-// Function to detect OS
 function getOSName() {
   const osType = process.platform;
   if (osType === "darwin") return "macOS";
   if (osType === "win32") return "Windows";
-  return "Linux"; // Default to Linux if it's neither macOS nor Windows
+  return "Linux";
 }
 
 const osName = getOSName();
 const args = minimist(process.argv.slice(2));
-const startUrl = args.url || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
+const startUrl = args["url"] || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
+const saveHar = args["save-har"] === true;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -26,7 +26,6 @@ function promptUser() {
 }
 
 async function runFullTurn(page, response) {
-  
   let newResponseId = response.id;
 
   // The model can return multiple computer calls in one response
@@ -35,7 +34,7 @@ async function runFullTurn(page, response) {
     const actions = items.filter((item) => item.type === "computer_call");
 
     // Print reasoning or assistant messages
-    for (const item of items) {      
+    for (const item of items) {
       if (item.type === "reasoning" && Array.isArray(item.summary)) {
         item.summary.forEach((entry) => {
           if (entry.type === "summary_text") {
@@ -75,7 +74,7 @@ async function runFullTurn(page, response) {
 }
 
 async function main() {
-  const { browser, page } = await launchBrowser();
+  const { browser, context, page } = await launchBrowser(saveHar);
   await page.goto(startUrl);
 
   const initialSystemText = 
@@ -103,7 +102,13 @@ async function main() {
 
   while (true) {
     const userInput = await promptUser();
-    if (userInput.toLowerCase() === "exit") break;
+    
+    if (userInput.toLowerCase() === "exit") {
+      await context.close();
+      await browser.close();
+      rl.close();
+      break;
+    }
 
     messages.push({ role: "user", content: userInput });
 
@@ -112,15 +117,12 @@ async function main() {
     let response = await sendCUARequest({
       messages,
       screenshotBase64,
-      previousResponseId
+      previousResponseId,
     });
 
     previousResponseId = await runFullTurn(page, response);
     messages = [];
   }
-
-  await browser.close();
-  rl.close();
 }
 
 main();
