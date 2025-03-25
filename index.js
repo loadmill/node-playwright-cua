@@ -1,5 +1,6 @@
 import minimist from "minimist";
 import readline from "readline";
+import { readFile } from "fs/promises";
 import { launchBrowser } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshotAsBase64 } from "./actions.js";
@@ -15,6 +16,7 @@ const osName = getOSName();
 const args = minimist(process.argv.slice(2));
 const startUrl = args["url"] || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
 const saveHar = args["save-har"] === true;
+const instructionsFile = args.instructions || args.i || null;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -36,11 +38,11 @@ async function runFullTurn(page, response) {
     // Print reasoning or assistant messages
     for (const item of items) {
       if (item.type === "reasoning" && Array.isArray(item.summary)) {
-        item.summary.forEach((entry) => {
+        for (const entry of item.summary) {
           if (entry.type === "summary_text") {
             console.log("[Reasoning]", entry.text);
           }
-        });
+        }
       } else if (item.type === "message" && Array.isArray(item.content)) {
         const textPart = item.content.find((c) => c.type === "output_text");
         if (textPart) {
@@ -74,6 +76,21 @@ async function runFullTurn(page, response) {
 }
 
 async function main() {
+  
+  // If we have a file, load it. Split the file into lines and store them.
+  let instructions = [];
+  if (instructionsFile) {
+    try {
+      const fileContent = await readFile(instructionsFile, "utf-8");
+      instructions = fileContent
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line.length > 0); // remove empty lines
+    } catch (err) {
+      console.error("Error reading instructions file:", err);
+    }
+  }
+
   const { browser, context, page } = await launchBrowser(saveHar);
   await page.goto(startUrl);
 
@@ -87,11 +104,11 @@ async function main() {
   If unsure, take a screenshot once before proceeding.  
   Do not repeat actions that have no visible effect.  
 
-  Available browser actions: 
+  Available browser actions:
   click, double_click, move, drag, scroll, type, keypress, wait, goto, back, forward, screenshot.
   
-  **Keyboard Shortcuts:**  
-  This web browser is running on ${osName}.  
+  **Keyboard Shortcuts:**
+  This web browser is running on ${osName}.
   Use OS-specific shortcuts. For example:
   On macOS, "CMD" should be used where applicable.
   On macOS if the user asks you to go back (to the previous page), use a combination of Cmd + [ keys.
@@ -101,8 +118,15 @@ async function main() {
   let messages = [{ role: "system", content: initialSystemText }];
 
   while (true) {
-    const userInput = await promptUser();
     
+    let userInput;
+    if (instructions.length > 0) {
+      userInput = instructions.shift();
+      console.log(`> ${userInput}`);
+    } else {
+      userInput = await promptUser();
+    }
+
     if (userInput.toLowerCase() === "exit") {
       await context.close();
       await browser.close();
