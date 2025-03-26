@@ -27,6 +27,16 @@ function promptUser() {
   return new Promise((resolve) => rl.question("> ", resolve));
 }
 
+async function loadInstructionsFile(instructionsFile) {
+  if (!instructionsFile) return [];
+
+  const fileContent = await readFile(instructionsFile, "utf-8");
+  return fileContent
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0); // Remove empty lines
+}
+
 async function runFullTurn(page, response) {
   let newResponseId = response.id;
 
@@ -37,13 +47,13 @@ async function runFullTurn(page, response) {
 
     // Print reasoning or assistant messages
     for (const item of items) {
-      if (item.type === "reasoning" && Array.isArray(item.summary)) {
+      if (item.type === "reasoning") {
         for (const entry of item.summary) {
           if (entry.type === "summary_text") {
             console.log("[Reasoning]", entry.text);
           }
         }
-      } else if (item.type === "message" && Array.isArray(item.content)) {
+      } else if (item.type === "message") {
         const textPart = item.content.find((c) => c.type === "output_text");
         if (textPart) {
           console.log("[Message]", textPart.text);
@@ -77,19 +87,7 @@ async function runFullTurn(page, response) {
 
 async function main() {
   
-  // If we have a file, load it. Split the file into lines and store them.
-  let instructions = [];
-  if (instructionsFile) {
-    try {
-      const fileContent = await readFile(instructionsFile, "utf-8");
-      instructions = fileContent
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0); // remove empty lines
-    } catch (err) {
-      console.error("Error reading instructions file:", err);
-    }
-  }
+  const instructions = await loadInstructionsFile(instructionsFile);
 
   const { browser, context, page } = await launchBrowser(saveHar);
   await page.goto(startUrl);
@@ -99,7 +97,7 @@ async function main() {
   Perform the user’s requested actions within the current browser tab opened on the target platform.  
   Execute each action once unless instructed otherwise.
   Stop acting once the task appears complete—avoid unnecessary clicks.  
-  Never ask for confirmation. If an action needs to be performed, execute it immediately. 
+  Never ask for confirmation. If you think an action needs to be performed, execute it immediately. 
   Only stop for questions if you don't have enough information to complete the action.
   If unsure, take a screenshot once before proceeding.  
   Do not repeat actions that have no visible effect.  

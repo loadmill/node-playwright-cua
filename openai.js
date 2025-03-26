@@ -36,14 +36,12 @@ export async function sendCUARequest({
   return openai.responses.create({
     model: "computer-use-preview",
     previous_response_id: previousResponseId || undefined,
-    tools: [
-      {
-        type: "computer_use_preview",
-        display_width,
-        display_height,
-        environment: "browser",
-      },
-    ],
+    tools: [{
+      type: "computer_use_preview",
+      display_width,
+      display_height,
+      environment: "browser",
+    }],
     input,
     store: true,
     reasoning: { generate_summary: "concise" },

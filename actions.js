@@ -1,4 +1,3 @@
-
 const keyMap = {
   ENTER: "Enter",
   ARROWLEFT: "ArrowLeft",
@@ -15,23 +14,25 @@ const modifierKeys = new Set(["Control", "Shift", "Alt", "Meta"]);
 
 export async function handleModelAction(page, action) {
   try {
+    const { x, y, button, path, scroll_x, scroll_y, text, keys, url } = action;
+
     switch (action.type) {
       case "click":
-        console.log(`Clicking at (${action.x}, ${action.y}), ${action.button} button`);
-        await page.mouse.click(action.x, action.y);
+        console.log(`Clicking at (${x}, ${y}), ${button} button`);
+        await page.mouse.click(x, y);
         break;
       case "double_click":
-        console.log(`Double clicking at (${action.x}, ${action.y})`);
-        await page.mouse.dblclick(action.x, action.y);
+        console.log(`Double clicking at (${x}, ${y})`);
+        await page.mouse.dblclick(x, y);
         break;
       case "move":
-        console.log(`Moving mouse to (${action.x}, ${action.y})`);
-        await page.mouse.move(action.x, action.y);
+        console.log(`Moving mouse to (${x}, ${y})`);
+        await page.mouse.move(x, y);
         break;
       case "drag":
-        console.log("Dragging along path", action.path);
-        if (Array.isArray(action.path) && action.path.length > 0) {
-          const [firstPoint, ...restPoints] = action.path;
+        console.log("Dragging along path", path);
+        if (Array.isArray(path) && path.length > 0) {
+          const [firstPoint, ...restPoints] = path;
           await page.mouse.move(firstPoint.x, firstPoint.y);
           await page.mouse.down();
           for (const point of restPoints) {
@@ -43,21 +44,23 @@ export async function handleModelAction(page, action) {
         }
         break;
       case "scroll":
-        console.log(`Scrolling by (${action.scroll_x}, ${action.scroll_y})`);
-        await page.mouse.wheel(action.scroll_x, action.scroll_y);
+        console.log(`Scrolling by (${scroll_x}, ${scroll_y})`);
+        await page.mouse.wheel(scroll_x, scroll_y);
         break;
       case "type":
-        console.log(`Typing text: ${action.text}`);
-        await page.keyboard.type(action.text);
+        console.log(`Typing text: ${text}`);
+        await page.keyboard.type(text);
         break;
       case "keypress":
-        console.log(`Pressing key: ${action.keys}`);
-        const mappedKeys = action.keys.map(key => keyMap[key.toUpperCase()] || key);
+        console.log(`Pressing key: ${keys}`);
+        const mappedKeys = keys.map(key => keyMap[key.toUpperCase()] || key);
         const modifiers = mappedKeys.filter(key => modifierKeys.has(key));
         const normalKeys = mappedKeys.filter(key => !modifierKeys.has(key));
 
-        if ((mappedKeys[0] === "Meta" && mappedKeys[1] === "[") ||
-          (mappedKeys[0] === "Alt" && mappedKeys[1] === "ArrowLeft")) {
+        if (
+          (mappedKeys[0] === "Meta" && mappedKeys[1] === "[") ||
+          (mappedKeys[0] === "Alt" && mappedKeys[1] === "ArrowLeft")
+        ) {
           await page.goBack();
           break;
         }
@@ -79,11 +82,11 @@ export async function handleModelAction(page, action) {
         break;
       case "wait":
         console.log("Waiting for browser...");
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(1000);
         break;
       case "goto":
-        console.log(`Navigating to ${action.url}`);
-        await page.goto(action.url);
+        console.log(`Navigating to ${url}`);
+        await page.goto(url);
         break;
       case "back":
         console.log("Navigating back");
