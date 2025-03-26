@@ -1,6 +1,6 @@
 # tiny-CUA
 
-![tiny-CUA logo](https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png)  
+![tiny-CUA logo](https://github.com/user-attachments/assets/de9ff2ea-8e42-4c9c-bced-99537352360f)
 
 A minimal implementation of a Computer-Using Agent on top of OpenAI's computer use model, using Node.js and Playwright. It's only four files and has fewer than 350 lines of code.
 
