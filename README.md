@@ -1,9 +1,13 @@
-# Computer-Using Agent (CUA) with Node.js, Playwright, and OpenAI
+# tiny-CUA
 
-## Goal
-Automate web interactions in a browser using Node.js, Playwright, and OpenAI's CUA API. The agent can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
+![tiny-CUA logo](https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png)  
+
+A minimal implementation of a Computer-Using Agent on top of OpenAI's computer use model, using Node.js and Playwright. It's only four files and has fewer than 350 lines of code.
 
 https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
+
+## Goal
+Automate web interactions in a browser with Node.js, Playwright, and OpenAI's computer use API. tiny-CUA can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
 ## How It Works
 1. The agent launches a browser using Playwright.  
@@ -28,7 +32,7 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
    ```sh
    echo "OPENAI_API_KEY=your-key" > .env
    ```
-4. Run the agent:
+4. Run tiny-CUA:
    ```sh
    node index.js
    ```
@@ -82,7 +86,7 @@ When run, each line is passed to the agent as if you typed it in. If you include
 The CUA API may return `pending_safety_checks` for sensitive or potentially harmful requests. To proceed, you must include them as `acknowledged_safety_checks` in your next request. The current code acknowledges them automatically, but a real production system would likely pause or log them for confirmation.
 
 ## Features
-- Performs actions in the browser (click, double-click, scroll, drag-and-drop, typing, etc.).  
+- Performs actions in the browser (click, double-click, scroll, drag-and-drop, typing, and more).  
 - Uses OpenAI to plan actions and maintain conversation context on the server side.  
 - Sends iterative screenshots for real-time guidance from the model.  
 - Acknowledges safety checks automatically for demonstration purposes.  
