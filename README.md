@@ -7,6 +7,10 @@ https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
 ## Goal
 Automate web interactions in a browser with Node.js, Playwright, and OpenAI's computer use API. tiny-CUA can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
+> [!NOTE]  
+> Your OpenAI platform account must be **Tier 3** to access the computer-use model.  
+> More info: https://platform.openai.com/docs/models/computer-use-preview
+
 ## How It Works
 1. The agent launches a browser using Playwright.  
 2. It navigates to a provided URL.  
